@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ozansu Islah Sekisi</title>
+<style>
+:root{--bg:#f4f5f2;--card:#ffffff;--ink:#1c2024;--muted:#5d6670;--line:#d6dad6;--acc:#1f6fb8;--conc:#c9ccce;--conc2:#9ea3a7;--soil:#b59a72;--water:#3b8fd9;--p37:#e8820c}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#15181b;--card:#1e2226;--ink:#e6e8ea;--muted:#9aa3ab;--line:#353b41;--acc:#6db1f2;--conc:#7d8388;--conc2:#5d6267;--soil:#8a7350;--water:#4c9ee6;--p37:#f59a32}}
+:root[data-theme="dark"]{--bg:#15181b;--card:#1e2226;--ink:#e6e8ea;--muted:#9aa3ab;--line:#353b41;--acc:#6db1f2;--conc:#7d8388;--conc2:#5d6267;--soil:#8a7350;--water:#4c9ee6;--p37:#f59a32}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,"Segoe UI",sans-serif}
+header{padding:20px 16px 8px;max-width:1100px;margin:auto}
+h1{font-size:22px;margin:0}
+.sub{color:var(--muted);font-size:13px}
+main{max-width:1100px;margin:auto;padding:0 16px 40px}
+nav{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0}
+nav button{font:inherit;font-size:14px;padding:6px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);cursor:pointer}
+nav button.on{background:var(--acc);color:#fff;border-color:var(--acc)}
+section{display:none;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+section.on{display:block}
+h2{font-size:17px;margin:0 0 4px}
+svg{width:100%;height:auto;display:block}
+svg text{fill:var(--ink);font-family:system-ui,sans-serif}
+.tbl{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+.tbl th,.tbl td{border-bottom:1px solid var(--line);padding:5px 6px;text-align:right}
+.tbl th:first-child,.tbl td:first-child{text-align:left}
+.scroll{overflow-x:auto}
+#v3d{position:relative;height:min(70vh,560px);border-radius:8px;overflow:hidden;background:#bfd4e6}
+#tt{position:absolute;pointer-events:none;background:#000c;color:#fff;font-size:12px;padding:4px 7px;border-radius:5px;display:none}
+.ctl{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0;font-size:14px}
+.ctl button{font:inherit;padding:4px 10px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);cursor:pointer}
+.note{color:var(--muted);font-size:13px;margin-top:8px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px}
+</style>
+<script type="importmap">{"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}</script>
+</head><body>
+<header>
+<h1>Ozansu Köyü Islah Sekisi (Tersip Bendi)</h1>
+<div class="sub">Bayburt · Ozansu · ITRF96 TM3 DOM 39 · Kotlar proje kotlarıdır (dere tabanı 1822,50)</div>
+</header>
+<main>
+<nav id="tabs">
+<button data-t="on" class="on">Ön görünüş (A-A)</button>
+<button data-t="bb">Enkesit (B-B)</button>
+<button data-t="plan">Plan / Aplikasyon</button>
+<button data-t="d3">3D Model</button>
+<button data-t="ozet">Özet ve parseller</button>
+</nav>
+
+<section id="on" class="on">
+<h2>Ön görünüş: bent ekseni boyunca (mansaptan bakış)</h2>
+<div class="sub">Yatay 1:1, düşey 2 kat abartılı. Ölçüler m.</div>
+<div class="scroll"><svg id="svgA"></svg></div>
+</section>
+
+<section id="bb">
+<h2>B-B Enkesiti: savak ekseninden (akım yönünde)</h2>
+<div class="sub">Ölçek 1:1 (düşey abartısız). Ölçüler m.</div>
+<div class="scroll"><svg id="svgB"></svg></div>
+<div class="note">Kademe enleri B-B kesitinden okunduğu için yaklaşıktır. Mansap yüzündeki eğim düz blok olarak çizildi.</div>
+</section>
+
+<section id="plan">
+<h2>Plan ve aplikasyon noktaları</h2>
+<div class="grid2">
+<div><svg id="svgP"></svg></div>
+<div class="scroll"><table class="tbl" id="tP"></table></div>
+</div>
+</section>
+
+<section id="d3">
+<h2>3D Bent modeli</h2>
+<div class="ctl">
+<button id="vm">Mansaptan</button><button id="vu">Membadan</button><button id="vt">Üstten</button>
+<label><input type="checkbox" id="cbW" checked> Su 1826,50</label>
+<label>Düşey abartı <input type="range" id="ex" min="1" max="3" step="0.5" value="1"> <b id="exv">1x</b></label>
+</div>
+<div id="v3d"><div id="tt"></div></div>
+<div class="note">Bloklara dokununca alt/üst kotlar görünür. Bu modelde halihazır arazisi yoktur; zemin dere tabanı kotunda (1822,50) düz düzlem olarak gösterilmiştir.</div>
+</section>
+
+<section id="ozet">
+<h2>Bent elemanları</h2>
+<div class="scroll"><table class="tbl" id="tE"></table></div>
+<h2 style="margin-top:18px">Halihazıra göre birikim ve parsel etkisi</h2>
+<div class="scroll"><table class="tbl">
+<tr><th>Seviye</th><th>Uzanım (memba)</th><th>Alan</th><th>Hacim</th></tr>
+<tr><td>Savak 1826,50 (normal birikim)</td><td>≈95 m</td><td>≈1.195 m²</td><td>≈2.000 m³</td></tr>
+<tr><td>Kanat üstü 1827,50 (taşkın)</td><td>≈125 m</td><td>≈2.812 m²</td><td>—</td></tr>
+</table></div>
+<div class="scroll"><table class="tbl">
+<tr><th>Parsel</th><th>Toplam alan</th><th>1826,50 altı</th><th>1827,50 altı</th><th>Arazi kotu</th></tr>
+<tr><td><b>37</b></td><td>7.139 m²</td><td><b>234 m²</b></td><td><b>1.175 m²</b></td><td>1823,3 – 1829,1</td></tr>
+<tr><td>1</td><td>16.408 m²</td><td>0</td><td>207 m²</td><td>1823,9 – 1830,2</td></tr>
+</table></div>
+<div class="note">Bent yerinde halihazır dere tabanı ≈1822,6 (projedeki 1822,50 ile uyumlu). Plandaki uç nokta: Y=584210,04 X=4439127,14 (40,082234 K, 39,987314 D), bent ekseninden ≈87 m yukarıda, arazi kotu ≈1826,7. Güneybatı kanat 37 nolu parselin içine giriyor. Parsel 37 malik bilgisi halihazırda yok; "1" nolu parselin numarası teyit edilmeli.</div>
+</section>
+</main>
+
+<script>
+const Z0=1822.50;
+const P={"1":[584274.738,4439066.908],"2":[584282.678,4439079.634],"3":[584288.617,4439075.929],"4":[584280.677,4439063.203],
+"H.1":[584281.662,4439064.782],"H.2":[584287.611,4439074.317],"H.3":[584293.550,4439070.612],"H.4":[584287.621,4439061.109]};
+// Bent blokları: s = eksen boyunca (m, merkezden), t = mansaba doğru (memba temel kenarından)
+const BL=[
+ {n:"Temel betonu (15,00×7,00)",s0:-7.5,s1:7.5,t0:0,t1:7,zb:Z0-2,zt:Z0,c:"--conc2"},
+ {n:"1. kademe (~24 m)",s0:-11.975,s1:11.975,t0:1,t1:5.75,zb:Z0,zt:Z0+1.5,c:"--conc"},
+ {n:"2. kademe (44 m)",s0:-22,s1:22,t0:2,t1:5.4,zb:Z0+1.5,zt:Z0+3,c:"--conc"},
+ {n:"3. kademe (62 m)",s0:-35,s1:27,t0:3,t1:5.15,zb:Z0+3,zt:Z0+4,c:"--conc"},
+ {n:"Savak kademesi sol kanat",s0:-42.9,s1:-3.75,t0:3,t1:5,zb:Z0+4,zt:Z0+5,c:"--conc"},
+ {n:"Savak kademesi sağ kanat",s0:3.75,s1:32.9,t0:3,t1:5,zb:Z0+4,zt:Z0+5,c:"--conc"}];
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const NS="http://www.w3.org/2000/svg";
+function el(svg,tag,a,txt){const e=document.createElementNS(NS,tag);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;svg.appendChild(e);return e;}
+const f2=x=>x.toFixed(2).replace('.',',');
+
+// ---------- A-A ön görünüş
+function drawA(){const s=document.getElementById('svgA');s.innerHTML='';
+ const sx=9,sz=18,xmin=-46,xmax=36,zmin=1820,zmax=1829;const W=(xmax-xmin)*sx+120,H=(zmax-zmin)*sz+110;
+ s.setAttribute('viewBox',`0 0 ${W} ${H}`);s.style.minWidth='720px';
+ const X=x=>70+(x-xmin)*sx,Y=z=>50+(zmax-z)*sz;
+ el(s,'rect',{x:X(xmin),y:Y(Z0),width:(xmax-xmin)*sx,height:(Z0-zmin)*sz,fill:css('--soil'),opacity:.35});
+ el(s,'rect',{x:X(-3.75),y:Y(Z0+4),width:7.5*sx,height:0.0001,fill:'none'});
+ // su
+ el(s,'rect',{x:X(-35),y:Y(Z0+4),width:62*sx,height:0.6*sz,fill:css('--water'),opacity:.25});
+ for(const b of BL){el(s,'rect',{x:X(b.s0),y:Y(b.zt),width:(b.s1-b.s0)*sx,height:(b.zt-b.zb)*sz,fill:css(b.c),stroke:css('--ink'),'stroke-width':1});}
+ // kot etiketleri
+ for(const z of [Z0-2,Z0,Z0+1.5,Z0+3,Z0+4,Z0+5]){el(s,'line',{x1:X(xmin)-6,x2:X(xmin),y1:Y(z),y2:Y(z),stroke:css('--muted')});el(s,'text',{x:X(xmin)-8,y:Y(z)+4,'text-anchor':'end','font-size':11},f2(z));}
+ el(s,'text',{x:X(0),y:Y(Z0+5)-22,'text-anchor':'middle','font-size':12,'font-weight':600},'Savak açıklığı 7,50 / 5,50  ▽ 1826,50');el(s,'line',{x1:X(0),x2:X(0),y1:Y(Z0+5)-18,y2:Y(Z0+4)-2,stroke:css('--ink'),'stroke-width':.8});
+ el(s,'text',{x:X(-39),y:Y(Z0+5)-6,'text-anchor':'middle','font-size':11},'Kanat ▽ 1827,50');
+ el(s,'text',{x:X(0),y:Y(Z0-1)+4,'text-anchor':'middle','font-size':11},'Temel 15,00');
+ el(s,'text',{x:X(xmax)-4,y:Y(Z0)-4,'text-anchor':'end','font-size':11,fill:css('--muted')},'Dere tabanı ▽ 1822,50');
+ // ölçü çizgileri
+ const dims=[[-11.975,11.975,'≈23,95',Z0+0.75],[-22,22,'44,00',Z0+2.25],[-35,27,'62,00',Z0+3.5]];
+ for(const [a,b,t,z] of dims){el(s,'text',{x:X((a+b)/2),y:Y(z)+4,'text-anchor':'middle','font-size':11},t);}
+ el(s,'line',{x1:X(-42.9),x2:X(32.9),y1:H-22,y2:H-22,stroke:css('--ink')});
+ el(s,'text',{x:X(-5),y:H-8,'text-anchor':'middle','font-size':11},'Toplam kret uzunluğu ≈75,80 m');
+ el(s,'text',{x:X(-44),y:H-30,'font-size':11,fill:css('--muted')},'GB (sol)');el(s,'text',{x:X(34),y:H-30,'text-anchor':'end','font-size':11,fill:css('--muted')},'KD (sağ)');
+}
+// ---------- B-B enkesit (s=0, savak ekseni)
+function drawB(){const s=document.getElementById('svgB');s.innerHTML='';
+ // t ekseni: memba temel kenarı=0; düşü havuzu temel sonundan (7) başlar, uzunluk 11.24 → 18.24, tahkimat +2
+ const sc=34,tmin=-5,tmax=22,zmin=1819.5,zmax=1828.5;const W=(tmax-tmin)*sc+110,H=(zmax-zmin)*sc+50;
+ s.setAttribute('viewBox',`0 0 ${W} ${H}`);s.style.minWidth='640px';
+ const X=t=>70+(t-tmin)*sc,Y=z=>20+(zmax-z)*sc;
+ const poly=(pts,a)=>el(s,'polygon',Object.assign({points:pts.map(([t,z])=>X(t)+','+Y(z)).join(' ')},a));
+ poly([[tmin,Z0],[tmax,Z0],[tmax,zmin],[tmin,zmin]],{fill:css('--soil'),opacity:.35});
+ poly([[tmin,Z0+4],[3,Z0+4],[3,Z0],[tmin,Z0]],{fill:css('--water'),opacity:.3});
+ const S=b=>poly([[b.t0,b.zb],[b.t1,b.zb],[b.t1,b.zt],[b.t0,b.zt]],{fill:css(b.c),stroke:css('--ink'),'stroke-width':1});
+ BL.slice(0,4).forEach(S);
+ // savak kanadı (kesik çizgi: arkada kalan)
+ poly([[3,Z0+4],[5,Z0+4],[5,Z0+5],[3,Z0+5]],{fill:'none',stroke:css('--muted'),'stroke-dasharray':'4 3'});
+ // düşü havuzu
+ poly([[7,Z0-0.5],[18.24,Z0-0.5],[18.24,Z0],[7,Z0]],{fill:css('--conc2'),stroke:css('--ink')});
+ poly([[7,Z0],[18.24,Z0],[18.24,Z0+2],[7,Z0+2]],{fill:'none',stroke:css('--muted'),'stroke-dasharray':'4 3'});
+ poly([[18.24,Z0-0.3],[20.24,Z0-0.3],[20.24,Z0+0.3],[18.24,Z0+0.3]],{fill:'#7d6f5e',stroke:css('--ink')});
+ for(const z of [Z0-2,Z0-0.5,Z0,Z0+1.5,Z0+3,Z0+4,Z0+5]){el(s,'text',{x:X(tmin)-8,y:Y(z)+4,'text-anchor':'end','font-size':11},f2(z));el(s,'line',{x1:X(tmin)-5,x2:X(tmin),y1:Y(z),y2:Y(z),stroke:css('--muted')});}
+ const T=(t,z,txt,a)=>el(s,'text',Object.assign({x:X(t),y:Y(z),'font-size':12,'text-anchor':'middle'},a||{}),txt);
+ T(-2.5,Z0+4.2,'▽ 1826,50 Savak');T(3.5,Z0-1.1,'Temel betonu 7,00');T(12.6,Z0+0.8,'Düşü havuzu 11,24 (yan duvar h=2,00)');T(19.24,Z0+0.7,'Tahkimat');
+ T(4,Z0+5.3,'Kanat ▽ 1827,50',{fill:css('--muted'),'font-size':11});
+ T(-2.5,Z0+0.3,'MEMBA',{'font-weight':600});T(21,Z0+2.6,'MANSAP →',{'font-weight':600});
+ // ölçüler
+ const dim=(a,b,z,t)=>{el(s,'line',{x1:X(a),x2:X(b),y1:Y(z),y2:Y(z),stroke:css('--ink'),'stroke-width':.8});[a,b].forEach(q=>el(s,'line',{x1:X(q),x2:X(q),y1:Y(z)-4,y2:Y(z)+4,stroke:css('--ink')}));T((a+b)/2,z+0.12,t,{'font-size':11});};
+ dim(0,7,Z0-2.35,'7,00');dim(7,18.24,Z0-2.35,'11,24');dim(3,5.15,Z0+5.9,'≈2,15');
+}
+// ---------- Plan
+const Pv=k=>P[k];const sub=(a,b)=>[a[0]-b[0],a[1]-b[1]];const add=(a,b)=>[a[0]+b[0],a[1]+b[1]];const mul=(a,k)=>[a[0]*k,a[1]*k];const nrm=a=>Math.hypot(a[0],a[1]);
+const u=mul(sub(P["2"],P["1"]),1/15),v0=sub(P["4"],P["1"]),v=mul(v0,1/nrm(v0)),C=mul(add(P["1"],P["2"]),.5);
+const L=(s,t)=>add(add(C,mul(u,s)),mul(v,t));
+const h1=P["H.1"],hu0=sub(P["H.2"],h1),HW=nrm(hu0),hu=mul(hu0,1/HW),hv0=sub(P["H.4"],h1),HL=nrm(hv0),hv=mul(hv0,1/HL);
+const Hh=(s,t)=>add(add(h1,mul(hu,s)),mul(hv,t));
+function planBlocks(){const out=BL.map(b=>({...b,pts:[L(b.s0,b.t0),L(b.s1,b.t0),L(b.s1,b.t1),L(b.s0,b.t1)]}));
+ const hb=(n,s0,s1,t0,t1,zb,zt,c)=>({n,zb,zt,c,pts:[Hh(s0,t0),Hh(s1,t0),Hh(s1,t1),Hh(s0,t1)]});
+ out.push(hb("Düşü havuzu tabanı",0,HW,0,HL,Z0-0.5,Z0,"--conc2"),hb("Düşü havuzu duvarı",0,1.15,0,HL,Z0,Z0+2,"--conc"),hb("Düşü havuzu duvarı",HW-1.15,HW,0,HL,Z0,Z0+2,"--conc"),hb("Tahkimat",1.15,HW-1.15,HL,HL+2,Z0-0.3,Z0+0.3,"#7d6f5e"));return out;}
+const ALL=planBlocks();
+function drawP(){const s=document.getElementById('svgP');s.innerHTML='';
+ const pts=ALL.flatMap(b=>b.pts);let x0=Math.min(...pts.map(p=>p[0]))-4,x1=Math.max(...pts.map(p=>p[0]))+4,y0=Math.min(...pts.map(p=>p[1]))-4,y1=Math.max(...pts.map(p=>p[1]))+4;
+ const sc=6,W=(x1-x0)*sc,H=(y1-y0)*sc;s.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ const X=x=>(x-x0)*sc,Y=y=>(y1-y)*sc;
+ for(const b of ALL)el(s,'polygon',{points:b.pts.map(p=>X(p[0])+','+Y(p[1])).join(' '),fill:b.c.startsWith('--')?css(b.c):b.c,stroke:css('--ink'),'stroke-width':.8,opacity:.9});
+ for(const k in P){const [x,y]=P[k];el(s,'circle',{cx:X(x),cy:Y(y),r:4,fill:k[0]=='H'?'#00a8c6':'#d62828'});el(s,'text',{x:X(x)+6,y:Y(y)-6,'font-size':12,'font-weight':600},k);}
+ el(s,'text',{x:W-10,y:20,'text-anchor':'end','font-size':13,'font-weight':700},'K ↑');
+ const ip=v0;el(s,'text',{x:10,y:H-10,'font-size':11,fill:css('--muted')},'Akım yönü: 1→4 doğrultusu (KD → GB taraf kanat uzun)');
+ const t=document.getElementById('tP');t.innerHTML='<tr><th>Nokta</th><th>Y (Doğu)</th><th>X (Kuzey)</th></tr>'+Object.entries(P).map(([k,[y,x]])=>`<tr><td>${k}</td><td>${y.toFixed(3)}</td><td>${x.toFixed(3)}</td></tr>`).join('')+'<tr><td>Uç nokta (plan, ±2 m)</td><td>584210.04</td><td>4439127.14</td></tr>';
+}
+function drawE(){document.getElementById('tE').innerHTML='<tr><th>Eleman</th><th>Boy (m)</th><th>En (m)</th><th>Alt kot</th><th>Üst kot</th></tr>'+
+ [["Temel betonu","15,00","7,00",Z0-2,Z0],["1. kademe","≈23,95","≈4,75",Z0,Z0+1.5],["2. kademe","44,00","≈3,40",Z0+1.5,Z0+3],["3. kademe","62,00","≈2,15",Z0+3,Z0+4],["Savak kademesi (ortada 5,50/7,50 açıklık)","≈75,80","≈2,00",Z0+4,Z0+5],["Düşü havuzu","11,24","7,00",Z0-0.5,Z0+2],["Tahkimat","2,00","≈4,70",Z0-0.3,Z0+0.3]]
+ .map(r=>`<tr><td>${r[0]}</td><td>${r[1]}</td><td>${r[2]}</td><td>${f2(r[3])}</td><td>${f2(r[4])}</td></tr>`).join('');}
+function drawAll(){drawA();drawB();drawP();drawE();}
+drawAll();matchMedia('(prefers-color-scheme: dark)').addEventListener('change',drawAll);
+window.__OZ={ALL,C,Z0,P};
+let start3d=null;
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>{document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('on',x===b));
+ document.querySelectorAll('section').forEach(x=>x.classList.toggle('on',x.id===b.dataset.t));if(b.dataset.t==='d3'&&window.__start3d)window.__start3d();});
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+let inited=false;
+window.__start3d=()=>{if(inited)return;inited=true;init();};
+if(document.getElementById('d3').classList.contains('on'))window.__start3d();
+function init(){
+ const {ALL,C,Z0}=window.__OZ;const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+ const box=document.getElementById('v3d');const w=()=>box.clientWidth,h=()=>box.clientHeight;
+ const R=new THREE.WebGLRenderer({antialias:true});R.setPixelRatio(devicePixelRatio);R.setSize(w(),h());box.appendChild(R.domElement);
+ const scene=new THREE.Scene();scene.background=new THREE.Color(0xbfd4e6);
+ const cam=new THREE.PerspectiveCamera(45,w()/h(),0.5,2000);const ctl=new OrbitControls(cam,R.domElement);ctl.enableDamping=true;
+ scene.add(new THREE.HemisphereLight(0xffffff,0x6b5a45,1));const sun=new THREE.DirectionalLight(0xffffff,1.5);sun.position.set(-60,120,50);scene.add(sun);
+ const world=new THREE.Group();scene.add(world);
+ const g0=new THREE.Mesh(new THREE.PlaneGeometry(160,120),new THREE.MeshLambertMaterial({color:0x9c8a68,side:THREE.DoubleSide}));g0.rotation.x=-Math.PI/2;g0.position.y=-0.02;world.add(g0);
+ const pick=[];
+ for(const b of ALL){const sh=new THREE.Shape(b.pts.map(([x,y])=>new THREE.Vector2(x-C[0],y-C[1])));
+  const g=new THREE.ExtrudeGeometry(sh,{depth:b.zt-b.zb,bevelEnabled:false});g.rotateX(-Math.PI/2);g.translate(0,b.zb-Z0,0);
+  const col=b.c.startsWith('--')?(b.c==='--conc2'?'#9ea3a7':'#d4d6d8'):b.c;
+  const m=new THREE.Mesh(g,new THREE.MeshLambertMaterial({color:col}));m.userData=b;world.add(m);pick.push(m);
+  world.add(new THREE.LineSegments(new THREE.EdgesGeometry(g),new THREE.LineBasicMaterial({color:0x333333})));}
+ // su: memba tarafı (t<3) 1826.50
+ const P=window.__OZ.P;const u=[(P["2"][0]-P["1"][0])/15,(P["2"][1]-P["1"][1])/15];const vv=[P["4"][0]-P["1"][0],P["4"][1]-P["1"][1]];const n=Math.hypot(...vv);const v=[vv[0]/n,vv[1]/n];
+ const Lp=(s,t)=>new THREE.Vector2(u[0]*s+v[0]*t,u[1]*s+v[1]*t);
+ const ws=new THREE.Shape([Lp(-35,3),Lp(27,3),Lp(40,-60),Lp(-45,-60)]);const wg=new THREE.ShapeGeometry(ws);wg.rotateX(-Math.PI/2);wg.translate(0,4,0);
+ const W=new THREE.Mesh(wg,new THREE.MeshLambertMaterial({color:0x2b7bd6,transparent:true,opacity:.55,side:THREE.DoubleSide,depthWrite:false}));world.add(W);
+ document.getElementById('cbW').onchange=e=>W.visible=e.target.checked;
+ const ex=document.getElementById('ex');ex.oninput=()=>{world.scale.y=+ex.value;document.getElementById('exv').textContent=ex.value+'x';};
+ const md=new THREE.Vector3(v[0],0,-v[1]);const tgt=new THREE.Vector3(0,2,0);
+ const view=p=>{cam.position.copy(p);ctl.target.copy(tgt);ctl.update();};
+ const vm=()=>view(md.clone().multiplyScalar(55).add(new THREE.Vector3(15,22,0)));
+ document.getElementById('vm').onclick=vm;document.getElementById('vu').onclick=()=>view(md.clone().multiplyScalar(-60).add(new THREE.Vector3(-10,25,0)));document.getElementById('vt').onclick=()=>view(new THREE.Vector3(0.01,110,0));vm();
+ const rc=new THREE.Raycaster(),mv=new THREE.Vector2(),tt=document.getElementById('tt');
+ R.domElement.addEventListener('pointermove',ev=>{const r=box.getBoundingClientRect();mv.set((ev.clientX-r.left)/r.width*2-1,-(ev.clientY-r.top)/r.height*2+1);rc.setFromCamera(mv,cam);
+  const hit=rc.intersectObjects(pick,false)[0];if(!hit){tt.style.display='none';return;}const b=hit.object.userData;
+  tt.innerHTML=`${b.n}<br>Alt ${b.zb.toFixed(2)} · Üst ${b.zt.toFixed(2)}`;tt.style.display='block';tt.style.left=(ev.clientX-r.left+12)+'px';tt.style.top=(ev.clientY-r.top+10)+'px';});
+ new ResizeObserver(()=>{cam.aspect=w()/h();cam.updateProjectionMatrix();R.setSize(w(),h());}).observe(box);
+ (function loop(){requestAnimationFrame(loop);ctl.update();R.render(scene,cam);})();
+}
+</script>
+</body></html>
